@@ -359,6 +359,8 @@ def static_files(path: str):
 
 
 if __name__ == "__main__":
-    init_db()
     port = int(os.environ.get("PORT", "8000"))
     app.run(host="0.0.0.0", port=port, debug=True)
+
+# Ensure DB/tables exist both for local run and Gunicorn (Render).
+init_db()
