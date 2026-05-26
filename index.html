@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>חנות סלולר כשר | MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="top-strip">
+    <div class="container top-strip-inner">
+      <p>מכשירים כשרים בפיקוח</p>
+      <p>שירות והכוונה: 03-0000000</p>
+      <p>משלוח מהיר לכל הארץ</p>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-row">
+      <button class="menu-btn" id="menuBtn" aria-label="פתח תפריט">☰</button>
+      <a href="#" class="logo">KOSHER<span>PHONE</span></a>
+
+      <form class="search" id="searchForm" role="search">
+        <input id="searchInput" type="search" placeholder="חיפוש מכשיר, רמת כשרות או מותג" aria-label="חיפוש מוצרים" />
+        <button type="submit">חפש</button>
+      </form>
+
+      <div class="user-actions">
+        <a class="ghost-btn link-btn" href="#lead">ייעוץ לפני קנייה</a>
+        <div class="cart-badge" aria-live="polite">סל <strong id="cartCount">0</strong></div>
+      </div>
+    </div>
+
+    <nav class="main-nav" id="mainNav">
+      <a href="#hero">ראשי</a>
+      <a href="#badges">פיקוח ואישור</a>
+      <a href="#categories">מכשירים כשרים</a>
+      <a href="#products">דגמים מומלצים</a>
+      <a href="#faq">שאלות נפוצות</a>
+      <a href="#lead">ייעוץ</a>
+      <a href="#footer">יצירת קשר</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="container hero-wrap">
+        <article class="hero-main">
+          <p class="eyebrow">סלולר כשר בלבד</p>
+          <h1>טלפונים מאושרים לציבור שומר תורה ומצוות</h1>
+          <p>דגמים כשרים, קו מאושר, והתאמה לצרכים האישיים והקהילתיים.</p>
+          <a class="cta" href="#products">לצפייה בדגמים</a>
+        </article>
+        <article class="hero-side">
+          <h3>מענה מקצועי</h3>
+          <p>התאמת מכשיר לפי רמת כשרות נדרשת</p>
+          <span>כולל הדרכה לפני ואחרי הקנייה</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="badges container" id="badges">
+      <article>תו פיקוח כשר</article>
+      <article>אפשרות לקו כשר</article>
+      <article>ללא אינטרנט פתוח</article>
+      <article>תמיכה בעברית מלאה</article>
+    </section>
+
+    <section class="filters container" aria-label="סינון מהיר">
+      <button class="filter-chip active" type="button">כל הדגמים</button>
+      <button class="filter-chip" type="button">כשר בסיסי</button>
+      <button class="filter-chip" type="button">מהדרין</button>
+      <button class="filter-chip" type="button">תומך וואטסאפ מסונן</button>
+      <button class="filter-chip" type="button">סים כשר</button>
+      <div class="advanced-filters">
+        <select id="brandFilter" aria-label="סינון מותג">
+          <option value="">כל המותגים</option>
+        </select>
+        <select id="priceFilter" aria-label="סינון מחיר">
+          <option value="">כל המחירים</option>
+          <option value="0-199">עד 199₪</option>
+          <option value="200-499">200₪ עד 499₪</option>
+          <option value="500-799">500₪ עד 799₪</option>
+          <option value="800-1200">800₪ ומעלה</option>
+        </select>
+        <select id="sortFilter" aria-label="מיון תוצאות">
+          <option value="">מיון ברירת מחדל</option>
+          <option value="price_asc">מחיר: נמוך לגבוה</option>
+          <option value="price_desc">מחיר: גבוה לנמוך</option>
+          <option value="name_asc">שם: א-ת</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="categories container" id="categories">
+      <div class="section-head">
+        <h2>קטגוריות מובילות</h2>
+        <a href="#">לכל הקטגוריות</a>
+      </div>
+      <div class="category-grid">
+        <article>מכשירים כשרים קלאסיים</article>
+        <article>מכשירים תומכי דור 4</article>
+        <article>טלפונים לשימוש עסקי</article>
+        <article>מכשירים למבוגרים</article>
+        <article>אביזרים תואמים</article>
+        <article>סוללות ומטענים</article>
+        <article>אוזניות כפתור</article>
+        <article>מבצעי חבילה</article>
+      </div>
+    </section>
+
+    <section class="products container" id="products">
+      <div class="section-head">
+        <h2>דגמים מומלצים</h2>
+        <a href="#">לכל הדגמים</a>
+      </div>
+      <div class="product-grid" id="productGrid"></div>
+      <p class="empty-state" id="emptyState" hidden>לא נמצאו מוצרים לפי החיפוש/סינון שבחרת.</p>
+    </section>
+
+    <section class="faq container" id="faq">
+      <div class="section-head">
+        <h2>שאלות נפוצות</h2>
+      </div>
+      <div class="faq-grid">
+        <article>
+          <h3>מה זה מכשיר כשר?</h3>
+          <p>מכשיר שעבר התאמות והגבלות לפי דרישות הפיקוח הרלוונטי.</p>
+        </article>
+        <article>
+          <h3>אפשר להעביר מספר קיים?</h3>
+          <p>כן, ברוב המקרים ניתן לנייד מספר ולחבר לקו מאושר.</p>
+        </article>
+        <article>
+          <h3>יש אחריות ושירות?</h3>
+          <p>כן, כל מכשיר מגיע עם אחריות ושירות לקוחות מסודר.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="lead container" id="lead">
+      <div class="section-head">
+        <h2>בקשת ייעוץ מהיר</h2>
+      </div>
+      <form id="leadForm" class="lead-form">
+        <input id="leadName" type="text" placeholder="שם מלא" required />
+        <input id="leadPhone" type="tel" placeholder="טלפון" required />
+        <select id="leadNeed" required>
+          <option value="">מה אתה מחפש?</option>
+          <option>מכשיר כשר בסיסי</option>
+          <option>מכשיר מהדרין</option>
+          <option>מכשיר תומך וואטסאפ מסונן</option>
+          <option>אביזרים</option>
+        </select>
+        <button type="submit">שלחו לי נציג</button>
+      </form>
+      <p class="lead-status" id="leadStatus" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="footer">
+    <div class="container footer-grid">
+      <div>
+        <h4>KOSHER PHONE</h4>
+        <p>פתרונות סלולר כשרים עם ליווי אישי והתאמה מלאה.</p>
+      </div>
+      <div>
+        <h4>מידע ושירות</h4>
+        <p>מדיניות משלוחים</p>
+        <p>תקנון אתר</p>
+        <p>תמיכה טכנית</p>
+      </div>
+      <div>
+        <h4>יצירת קשר</h4>
+        <p>03-0000000</p>
+        <p>support@kosher-phone.co.il</p>
+        <p>א׳-ה׳ 09:00-18:00</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול מערכת</title>
+  <style>
+    body { font-family: Rubik, sans-serif; margin:0; background:#f3f4f6; color:#111827; }
+    .wrap { width:min(1200px,94vw); margin:20px auto; }
+    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .panel { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px; margin-bottom:14px; }
+    .controls, .form-grid { display:flex; gap:8px; flex-wrap:wrap; }
+    .form-grid input { min-width:150px; }
+    select, input, button { padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; font-family:inherit; }
+    button { cursor:pointer; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e5e7eb; }
+    th, td { padding:10px; border-bottom:1px solid #e5e7eb; text-align:right; font-size:0.9rem; }
+    .status-new { color:#b45309; font-weight:700; }
+    .status-contacted { color:#166534; font-weight:700; }
+    .row-actions button { margin-left:6px; }
+    h2 { margin:0 0 10px; }
+    .note { color:#6b7280; font-size:0.86rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>ניהול מערכת</h1>
+      <form method="post" action="/admin/logout"><button type="submit">התנתק</button></form>
+    </div>
+
+    <section class="panel">
+      <h2>פניות</h2>
+      <div class="controls">
+        <select id="statusFilter">
+          <option value="all">כל הפניות</option>
+          <option value="new">חדשות</option>
+          <option value="contacted">טופלו</option>
+        </select>
+        <button id="reloadLeadsBtn" type="button">רענן פניות</button>
+      </div>
+      <p id="leadCount"></p>
+      <table>
+        <thead><tr><th>#</th><th>שם</th><th>טלפון</th><th>צורך</th><th>תאריך</th><th>סטטוס</th><th>פעולות</th></tr></thead>
+        <tbody id="leadRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>ניהול מוצרים</h2>
+      <form id="productForm" class="form-grid">
+        <input id="pName" placeholder="שם מוצר" required />
+        <input id="pBrand" placeholder="מותג" required />
+        <input id="pLevel" placeholder="רמת כשרות" required />
+        <input id="pPrice" type="number" min="1" placeholder="מחיר" required />
+        <input id="pOldPrice" type="number" min="1" placeholder="מחיר קודם" required />
+        <input id="pImage" placeholder="קישור תמונה" required />
+        <button type="submit" id="saveProductBtn">הוסף מוצר</button>
+        <button type="button" id="cancelEditBtn" hidden>ביטול עריכה</button>
+      </form>
+      <p class="note" id="productMsg"></p>
+      <button id="reloadProductsBtn" type="button">רענן מוצרים</button>
+      <p id="productCount"></p>
+      <table>
+        <thead><tr><th>#</th><th>שם</th><th>מותג</th><th>רמה</th><th>מחיר</th><th>מחיר קודם</th><th>פעולות</th></tr></thead>
+        <tbody id="productRows"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const leadRowsEl = document.getElementById('leadRows');
+    const leadCountEl = document.getElementById('leadCount');
+    const statusFilter = document.getElementById('statusFilter');
+
+    const productRowsEl = document.getElementById('productRows');
+    const productCountEl = document.getElementById('productCount');
+    const productMsg = document.getElementById('productMsg');
+    const productForm = document.getElementById('productForm');
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    let editingProductId = null;
+    let productsCache = [];
+
+    async function loadLeads() {
+      const res = await fetch(`/api/admin/leads?status=${statusFilter.value}`);
+      if (!res.ok) {
+        leadRowsEl.innerHTML = '<tr><td colspan="7">אין הרשאה או שגיאה בטעינה</td></tr>';
+        return;
+      }
+      const data = await res.json();
+      leadCountEl.textContent = `סה"כ פניות: ${data.count}`;
+      leadRowsEl.innerHTML = data.items.map((lead) => `
+        <tr>
+          <td>${lead.id}</td><td>${lead.name}</td><td>${lead.phone}</td><td>${lead.need}</td><td>${lead.created_at}</td>
+          <td class="${lead.status === 'new' ? 'status-new' : 'status-contacted'}">${lead.status}</td>
+          <td class="row-actions">
+            <button type="button" data-lead="${lead.id}" data-status="new">סמן חדש</button>
+            <button type="button" data-lead="${lead.id}" data-status="contacted">סמן טופל</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="7">אין פניות להצגה</td></tr>';
+    }
+
+    async function setStatus(id, status) {
+      const res = await fetch(`/api/admin/leads/${id}/status`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+      });
+      if (res.ok) loadLeads();
+    }
+
+    function formData() {
+      return {
+        name: document.getElementById('pName').value.trim(),
+        brand: document.getElementById('pBrand').value.trim(),
+        level: document.getElementById('pLevel').value.trim(),
+        price: Number(document.getElementById('pPrice').value),
+        oldPrice: Number(document.getElementById('pOldPrice').value),
+        image: document.getElementById('pImage').value.trim()
+      };
+    }
+
+    function fillForm(product) {
+      document.getElementById('pName').value = product.name;
+      document.getElementById('pBrand').value = product.brand;
+      document.getElementById('pLevel').value = product.level;
+      document.getElementById('pPrice').value = product.price;
+      document.getElementById('pOldPrice').value = product.oldPrice;
+      document.getElementById('pImage').value = product.image;
+    }
+
+    function resetForm() {
+      productForm.reset();
+      editingProductId = null;
+      saveProductBtn.textContent = 'הוסף מוצר';
+      cancelEditBtn.hidden = true;
+      productMsg.textContent = '';
+    }
+
+    async function loadProducts() {
+      const res = await fetch('/api/admin/products');
+      if (!res.ok) {
+        productRowsEl.innerHTML = '<tr><td colspan="7">אין הרשאה או שגיאה בטעינה</td></tr>';
+        return;
+      }
+      const data = await res.json();
+      productsCache = data.items;
+      productCountEl.textContent = `סה"כ מוצרים: ${data.count}`;
+      productRowsEl.innerHTML = data.items.map((p) => `
+        <tr>
+          <td>${p.id}</td><td>${p.name}</td><td>${p.brand}</td><td>${p.level}</td><td>${p.price}</td><td>${p.oldPrice}</td>
+          <td class="row-actions">
+            <button type="button" data-edit="${p.id}">עריכה</button>
+            <button type="button" data-delete="${p.id}">מחיקה</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="7">אין מוצרים</td></tr>';
+    }
+
+    async function removeProduct(id) {
+      if (!confirm(`למחוק מוצר #${id}?`)) return;
+      const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        productMsg.textContent = 'המוצר נמחק';
+        loadProducts();
+      }
+    }
+
+    productForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = formData();
+      if (!payload.name || !payload.brand || !payload.level || !payload.image || !payload.price || !payload.oldPrice) {
+        productMsg.textContent = 'יש למלא את כל השדות';
+        return;
+      }
+
+      const url = editingProductId ? `/api/admin/products/${editingProductId}` : '/api/admin/products';
+      const method = editingProductId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        productMsg.textContent = 'שגיאה בשמירה';
+        return;
+      }
+
+      productMsg.textContent = editingProductId ? 'המוצר עודכן' : 'המוצר נוסף';
+      resetForm();
+      loadProducts();
+    });
+
+    leadRowsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-lead]');
+      if (!btn) return;
+      setStatus(btn.dataset.lead, btn.dataset.status);
+    });
+
+    productRowsEl.addEventListener('click', (e) => {
+      const editBtn = e.target.closest('button[data-edit]');
+      if (editBtn) {
+        const id = Number(editBtn.dataset.edit);
+        const product = productsCache.find((p) => p.id === id);
+        if (!product) return;
+        editingProductId = id;
+        fillForm(product);
+        saveProductBtn.textContent = 'שמור שינויים';
+        cancelEditBtn.hidden = false;
+        productMsg.textContent = `עריכת מוצר #${id}`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const deleteBtn = e.target.closest('button[data-delete]');
+      if (deleteBtn) removeProduct(Number(deleteBtn.dataset.delete));
+    });
+
+    cancelEditBtn.addEventListener('click', resetForm);
+    statusFilter.addEventListener('change', loadLeads);
+    document.getElementById('reloadLeadsBtn').addEventListener('click', loadLeads);
+    document.getElementById('reloadProductsBtn').addEventListener('click', loadProducts);
+
+    loadLeads();
+    loadProducts();
+  </script>
+</body>
+</html>
